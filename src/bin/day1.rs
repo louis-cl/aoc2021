@@ -1,29 +1,18 @@
-use std::process::exit;
+use itertools::Itertools;
 
 fn main() {
     let nums: Vec<_> = include_str!("../../input/day1").lines()
         .map(|line| line.parse::<i32>().unwrap()).collect();
 
-    let mut last_num = nums[0];
-    let mut count = 0;
-    for n in &nums {
-        if n > &last_num {
-            count += 1;
-        }
-        last_num = *n;
-    }
+    let p1 = nums.windows(2)
+        .filter(|x| x[0] < x[1])
+        .count();
+    println!("p1 = {:?}", p1);
 
-    println!("p1 = {:?}", count);
-
-    let mut last_sum = i32::MAX;
-    let mut sum_count = 0;
-    for win in nums.windows(3) {
-        let sum = win[0] + win[1] + win[2];
-        if sum > last_sum {
-            sum_count += 1;
-        }
-        last_sum = sum;
-    }
-
-    println!("p2 = {}", sum_count);
+    let p2 = nums.iter().tuple_windows()
+        .map(|(x,y,z)| x + y + z)
+        .tuple_windows()
+        .filter(|(x,y)| x < y)
+        .count();
+    println!("p2 = {}", p2);
 }
