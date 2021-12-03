@@ -3,9 +3,9 @@ use crate::Command::{Down, Forward, Up};
 
 #[derive(Debug)]
 enum Command {
-    Forward(u32),
-    Down(u32),
-    Up(u32)
+    Forward(i32),
+    Down(i32),
+    Up(i32)
 }
 
 fn main() {
@@ -25,7 +25,7 @@ fn main() {
 
     let p1 = {
         let (mut x, mut d) = (0, 0);
-        for c in input {
+        for c in &input {
             match c {
                 Forward(n) =>  x += n,
                 Down(n) => d += n,
@@ -36,5 +36,19 @@ fn main() {
     };
     println!("p1 = {:?}", p1);
 
-    // println!("p2 = {}", p2);
+    let p2 = {
+        let (mut x, mut d, mut aim) = (0, 0, 0i32);
+        for c in &input {
+            match c {
+                Forward(n) =>  {
+                    x += n;
+                    d += aim * n;
+                },
+                Down(n) => aim += n,
+                Up(n) => aim -= n
+            }
+        }
+        x * d
+    };
+    println!("p2 = {}", p2);
 }
