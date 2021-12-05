@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::str::FromStr;
 
+#[allow(dead_code)]
 const SAMPLE: &str = r#"
 0,9 -> 5,9
 8,0 -> 0,8
