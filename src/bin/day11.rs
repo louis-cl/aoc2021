@@ -63,7 +63,7 @@ fn step(map: &mut Map) -> u32 {
 }
 
 fn main() {
-    let mut map: Map =
+    let map: Map =
         // SAMPLE
         include_str!("../../input/day11")
             .lines()
@@ -73,16 +73,21 @@ fn main() {
     ;
 
     let p1 = {
+        let mut light_map = map.clone();
         let mut flashes = 0;
         for _ in 0..100 {
-            flashes += step(&mut map);
+            flashes += step(&mut light_map);
         }
         flashes
     };
     println!("p1 = {:?}", p1);
 
     let p2 = {
-
+        let mut light_map = map.clone();
+        let want = (map.len() * map[0].len()) as u32;
+        let mut i = 1;
+        while step(&mut light_map) != want { i += 1 }
+        i
     };
     println!("p2 = {:?}", p2);
 }
