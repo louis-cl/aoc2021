@@ -91,3 +91,27 @@ fn main() {
     };
     println!("p2 = {:?}", p2);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let map: Map = SAMPLE.lines()
+            .filter(|l| !l.is_empty())
+            .map(|l| l.chars().map(|c| c.to_digit(10).unwrap()).collect())
+            .collect()
+        ;
+
+        let p1 = {
+            let mut light_map = map.clone();
+            let mut flashes = 0;
+            for _ in 0..100 {
+                flashes += step(&mut light_map);
+            }
+            flashes
+        };
+        assert_eq!(p1, 1656)
+    }
+}
