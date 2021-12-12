@@ -1,18 +1,22 @@
 use std::collections::{HashMap, HashSet};
 
-fn paths<'a>(x: &'a str, edges: &HashMap<&'a str, HashSet<&'a str>>, used: &mut HashSet<&'a str>) -> u32 {
+fn paths<'a>(x: &'a str,
+             edges: &HashMap<&'a str, HashSet<&'a str>>,
+             used: &mut HashSet<&'a str>,
+             extra_time: bool) -> u32 {
     if x == "end" { return 1 }
+    let mut use_extra = false;
+    if used.contains(&x) {
+        if !extra_time { return 0 }
+        use_extra = true;
+    }
+    let is_small = x.chars().next().unwrap().is_lowercase();
+    if is_small && !use_extra { used.insert(x); }
     let mut count = 0;
     for &end in edges.get(&x).unwrap() {
-        if used.contains(&end) { continue }
-        if x.chars().next().unwrap().is_lowercase() {
-            used.insert(x);
-            count += paths(end, edges, used);
-            used.remove(&x);
-        } else {
-            count += paths(end, edges, used);
-        }
+        count += paths(end, edges, used, extra_time && !use_extra);
     }
+    if is_small && !use_extra { used.remove(x); }
     count
 }
 
@@ -33,11 +37,11 @@ fn solve(inp: &str) -> (u32, u32) {
 
     let p1 = {
         let mut used = HashSet::new(); // used small caves
-        used.insert("start");
-        paths("start", &edges, &mut used)
+        paths("start", &edges, &mut used, false)
     };
     let p2 = {
-        0
+        let mut used = HashSet::new(); // used small caves
+        paths("start", &edges, &mut used, true)
     };
     (p1,p2)
 }
