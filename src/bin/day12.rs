@@ -22,8 +22,12 @@ fn solve(inp: &str) -> (u32, u32) {
         .filter(|l| !l.is_empty())
         .map(|l| l.split_once('-').unwrap())
         .fold(HashMap::new(), |mut m, (from, to)| {
-            m.entry(from).or_insert(HashSet::new()).insert(to);
-            m.entry(to).or_insert(HashSet::new()).insert(from);
+            if from != "end" && to != "start" {
+                m.entry(from).or_insert(HashSet::new()).insert(to);
+            }
+            if to != "end" && from != "start" {
+                m.entry(to).or_insert(HashSet::new()).insert(from);
+            }
             m
         });
 
@@ -53,8 +57,9 @@ mod tests {
             A-end
             b-end
         "#;
-        let (p1, _) = solve(inp);
-        assert_eq!(p1, 10)
+        let (p1, p2) = solve(inp);
+        assert_eq!(p1, 10);
+        assert_eq!(p2, 36);
     }
 
     #[test]
@@ -71,8 +76,9 @@ mod tests {
             kj-HN
             kj-dc
         "#;
-        let (p1, _) = solve(inp);
-        assert_eq!(p1, 19)
+        let (p1, p2) = solve(inp);
+        assert_eq!(p1, 19);
+        assert_eq!(p2, 103);
     }
 
     #[test]
@@ -97,8 +103,9 @@ mod tests {
             pj-fs
             start-RW
         "#;
-        let (p1, _) = solve(inp);
-        assert_eq!(p1, 226)
+        let (p1, p2) = solve(inp);
+        assert_eq!(p1, 226);
+        assert_eq!(p2, 3509);
     }
 }
 
