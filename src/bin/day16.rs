@@ -109,40 +109,42 @@ fn decode(s: &str) -> Vec<u8> {
 fn pparse(s: &str) -> Packet {
     parse(&decode(s)).1
 }
-//
-// #[cfg(test)]
-// mod parse_test {
-//     use super::*;
-//
-//     #[test]
-//     fn value() {
-//         let p = pparse("D2FE28");
-//         assert_eq!(p, Packet::ValueP(Header { v: 6, t: 4}, 2021));
-//     }
-//
-//     #[test]
-//     fn operator1() {
-//         let p = pparse("38006F45291200");
-//         assert_eq!(p, Packet::OperatorP(
-//             Header { v: 1, t: 6},
-//             Length { packet_mode: false, l: 27},
-//             [Packet::ValueP(Header { v: 6, t: 4}, 10),
-//                 Packet::ValueP(Header { v: 2, t: 4}, 20)].to_vec()
-//         ));
-//     }
-//
-//     #[test]
-//     fn operator2() {
-//         let p = pparse("EE00D40C823060");
-//         assert_eq!(p, Packet::OperatorP(
-//             Header { v: 7, t:3},
-//             Length { packet_mode: true, l: 3},
-//             [Packet::ValueP(Header { v: 2, t: 4}, 1),
-//                 Packet::ValueP(Header { v: 4, t: 4}, 2),
-//                 Packet::ValueP(Header { v: 1, t: 4}, 3)].to_vec()
-//         ));
-//     }
-// }
+
+#[cfg(test)]
+mod parse_test {
+    use super::*;
+
+    #[test]
+    fn value() {
+        let p = pparse("D2FE28");
+        assert_eq!(p, Packet::ValueP(Header { v: 6, t: 4}, 2021));
+    }
+
+    #[test]
+    fn operator1() {
+        let p = pparse("38006F45291200");
+        assert_eq!(p, Packet::OperatorP(
+            Header { v: 1, t: 6},
+            6,
+            Length { packet_mode: false, l: 27},
+            [Packet::ValueP(Header { v: 6, t: 4}, 10),
+                Packet::ValueP(Header { v: 2, t: 4}, 20)].to_vec()
+        ));
+    }
+
+    #[test]
+    fn operator2() {
+        let p = pparse("EE00D40C823060");
+        assert_eq!(p, Packet::OperatorP(
+            Header { v: 7, t:3},
+            3,
+            Length { packet_mode: true, l: 3},
+            [Packet::ValueP(Header { v: 2, t: 4}, 1),
+                Packet::ValueP(Header { v: 4, t: 4}, 2),
+                Packet::ValueP(Header { v: 1, t: 4}, 3)].to_vec()
+        ));
+    }
+}
 
 fn sum_version(packet: &Packet) -> u64 {
     return match packet {
