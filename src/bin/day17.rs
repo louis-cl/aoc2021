@@ -35,6 +35,46 @@ fn hits(v: V2, xr: &V2, yr: &V2) -> bool {
     true
 }
 
+fn find(xr: V2, yr: V2) -> V2 {
+    let (_, maxx) = xr;
+    let (miny, maxy) = yr;
+    for vy in (-maxy..=-miny).rev() {
+        for vx in 1..=maxx {
+            // println!("trying {:?}", (vx, vy));
+            if hits((vx, vy), &xr, &yr) {
+                return (vx, vy);
+            }
+        }
+    }
+    panic!("failed");
+}
+
+fn count(xr: V2, yr: V2) -> u32 {
+    let (_, maxx) = xr;
+    let (miny, _) = yr;
+    let mut total = 0;
+    for vy in miny..=-miny {
+        for vx in 1..=maxx {
+            if hits((vx, vy), &xr, &yr) {
+                total += 1;
+            }
+        }
+    }
+    total
+}
+
+fn main() {
+    // target area: x=277..318, y=-92..-53;
+    let p1 = {
+        let speed = find((277, 318), (-92, -53));
+        speed.1 * (speed.1 + 1) / 2
+    };
+    println!("p1 = {:?}", p1);
+
+    let p2 = count((277, 318), (-92, -53));
+    println!("p2 = {}", p2);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -59,30 +99,10 @@ mod tests {
         let p1 = speed.1 * (speed.1 + 1) / 2;
         assert_eq!(45, p1);
     }
-}
 
-fn find(xr: V2, yr: V2) -> V2 {
-    let (_, maxx) = xr;
-    let (miny, maxy) = yr;
-    for vy in (-maxy..=-miny).rev() {
-        for vx in 1..=maxx {
-            // println!("trying {:?}", (vx, vy));
-            if hits((vx, vy), &xr, &yr) {
-                return (vx, vy);
-            }
-        }
+    #[test]
+    fn part2() {
+        let total = count((20,30), (-10, -5));
+        assert_eq!(112, total);
     }
-    panic!("failed");
-}
-
-fn main() {
-    // target area: x=277..318, y=-92..-53;
-    let p1 = {
-        let speed = find((277, 318), (-92, -53));
-        speed.1 * (speed.1 + 1) / 2
-    };
-    println!("p1 = {:?}", p1);
-
-    let p2 = 1;
-    println!("p2 = {}", p2);
 }
