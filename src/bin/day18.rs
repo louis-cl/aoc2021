@@ -2,6 +2,7 @@ use std::cmp::max;
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 use itertools::Itertools;
+use crate::Node::{Nest, Value};
 
 #[derive(Debug, PartialEq, Clone)]
 enum Node {
@@ -11,7 +12,6 @@ enum Node {
 
 impl FromStr for Node {
     type Err = ();
-
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Node::from_bytes(&s.bytes().collect::<Vec<_>>()).1)
     }
@@ -20,8 +20,8 @@ impl FromStr for Node {
 impl Display for Node {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Node::Value(v) => write!(f, "{}", v),
-            Node::Nest(l, r) => {
+            Value(v) => write!(f, "{}", v),
+            Nest(l, r) => {
                 write!(f, "[{},{}]", **l, **r)
             }
         }
@@ -51,8 +51,7 @@ impl Node {
     }
 
     fn add(self, right: Self) -> Self {
-        Node::Nest(Box::new(self), Box::new(right))
-            .reduced()
+        Nest(Box::new(self), Box::new(right)).reduced()
     }
 
     fn reduced(self) -> Self {
@@ -70,22 +69,22 @@ impl Node {
             Node::Value(v) => {
                 if v >= 10 {
                     let h = v/2;
-                    (Node::Nest(Box::new(Node::Value(h)),
-                                 Box::new(Node::Value(v - h))), true)
+                    (Nest(Box::new(Node::Value(h)),
+                          Box::new(Node::Value(v - h))), true)
                 } else {
                     (self, false)
                 }
             }
-            Node::Nest(l, r) => {
+            Nest(l, r) => {
                 let (nl, done) = l.split();
                 if done {
-                    return (Node::Nest(Box::new(nl), r), true)
+                    return (Nest(Box::new(nl), r), true)
                 }
                 let (nr, done) = r.split();
                 if done {
-                    return (Node::Nest(Box::new(nl), Box::new(nr)), true);
+                    return (Nest(Box::new(nl), Box::new(nr)), true);
                 }
-                (Node::Nest(Box::new(nl), Box::new(nr)), false)
+                (Nest(Box::new(nl), Box::new(nr)), false)
             }
         }
     }
@@ -96,26 +95,19 @@ impl Node {
 
     fn p_explode(self, depth: u32, (cl, cr): (u32, u32)) -> (Self, (u32, u32)) {
         match self {
-            Node::Value(v) =>
-                (Node::Value(v + cl + cr), (0, 0)),
-            Node::Nest(l, r) => {
+            Value(v) => (Value(v + cl + cr), (0, 0)),
+            Nest(l, r) => {
                 if depth == 5 {
-                    match (*l, *r) {
-                        (Node::Value(lv), Node::Value(rv)) => {
-                            (Node::Value(0), (lv+cl, rv+cr))
-                        }
-                        _ => panic!("depth > 5")
+                    if let (Value(lv), Value(rv)) = (*l, *r) {
+                        (Value(0), (lv+cl, rv+cr))
+                    } else {
+                        panic!("depth > 5");
                     }
                 } else {
-                    let (left, (lcl, lcr)) =
-                        l.p_explode(depth + 1, (cl, 0));
-                    let (right, (rcl, rcr)) =
-                        r.p_explode(depth + 1, (lcr, cr));
-                    let (real_left, z) =
-                        left.p_explode(depth + 1, (0, rcl));
-                    assert_eq!(z, (0, 0));
-                    (Node::Nest(Box::new(real_left), Box::new(right)),
-                     (lcl, rcr))
+                    let (left, (lcl, lcr)) = l.p_explode(depth + 1, (cl, 0));
+                    let (right, (rcl, rcr)) = r.p_explode(depth + 1, (lcr, cr));
+                    let (left, _) = left.p_explode(depth + 1, (0, rcl));
+                    (Nest(Box::new(left), Box::new(right)), (lcl, rcr))
                 }
             }
         }
@@ -123,8 +115,8 @@ impl Node {
 
     fn magnitude(&self) -> u32 {
         match self {
-            Node::Value(v) => *v,
-            Node::Nest(l, r) => 3 * l.magnitude() + 2 * r.magnitude()
+            Value(v) => *v,
+            Nest(l, r) => 3 * l.magnitude() + 2 * r.magnitude()
         }
     }
 }
