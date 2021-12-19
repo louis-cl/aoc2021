@@ -94,8 +94,7 @@ impl Node {
         self.p_explode(1, (0,0)).0
     }
 
-    fn p_explode(self, depth: u32, carry: (u32, u32)) -> (Self, (u32, u32)) {
-        let (cl, cr) = carry;
+    fn p_explode(self, depth: u32, (cl, cr): (u32, u32)) -> (Self, (u32, u32)) {
         match self {
             Node::Value(v) =>
                 (Node::Value(v + cl + cr), (0, 0)),
