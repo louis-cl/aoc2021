@@ -1,10 +1,10 @@
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashSet};
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 struct State {
     cost: usize,
-    rooms: [[char; 2]; 4],
+    rooms: [Vec<char>; 4],
     hallway: [char; 11],
 }
 // empty space is '.'
@@ -20,9 +20,9 @@ impl Ord for State {
     }
 }
 
-fn is_goal(rooms: [[char; 2]; 4]) -> bool {
-    for (i,&r) in rooms.iter().enumerate() {
-        for c in r {
+fn is_goal(rooms: &[Vec<char>; 4]) -> bool {
+    for (i,r) in rooms.iter().enumerate() {
+        for &c in r.iter() {
             if c == '.' || room_of(c) != i {
                 return false;
             }
@@ -45,11 +45,16 @@ fn steps_move_to(start: usize, end: usize, hallway: [char; 11]) -> Option<usize>
     Some((end as i32 - start as i32).abs() as usize)
 }
 
-fn steps_move_in(room: [char; 2]) -> Option<usize> {
-    room.into_iter().enumerate().rev()
-        .filter(|(_, c)| *c == '.')
-        .next()
-        .map(|(s, _)| s + 1)
+fn steps_move_in(c: char, room: &Vec<char>) -> Option<usize> {
+    // empty or only mine
+    if room.iter().any(|&c2| c2 != '.' && c2 != c) {
+        None
+    } else {
+        room.iter().enumerate().rev()
+            .filter(|&(_, &c)| c == '.')
+            .next()
+            .map(|(s, _)| s + 1)
+    }
 }
 
 fn cost_of(c: char) -> usize {
@@ -60,7 +65,7 @@ fn room_entry(room_i: usize) -> usize {
     2*room_i + 2
 }
 
-fn shortest_cost(initial_rooms: [[char; 2]; 4]) -> usize {
+fn shortest_cost(initial_rooms: [Vec<char>; 4]) -> usize {
     let mut heap = BinaryHeap::new();
     let mut seen = HashSet::new();
 
@@ -71,16 +76,16 @@ fn shortest_cost(initial_rooms: [[char; 2]; 4]) -> usize {
     });
     while let Some(State { cost, rooms, hallway }) = heap.pop() {
         // println!("cost {} for {:?},{:?}", cost, hallway, rooms);
-        if seen.contains(&(rooms, hallway)) { continue }
-        seen.insert((rooms, hallway));
-        if is_goal(rooms) {
+        if seen.contains(&(rooms.clone(), hallway)) { continue }
+        seen.insert((rooms.clone(), hallway));
+        if is_goal(&rooms) {
             return cost;
         }
         // move any pod in hallway to his room
         for (hall_i, &c) in hallway.iter().enumerate() {
             if c == '.' { continue }
             let room_i = room_of(c);
-            if let Some(in_move) = steps_move_in(rooms[room_i]) {
+            if let Some(in_move) = steps_move_in(c, &rooms[room_i]) {
                 if let Some(s_move) = steps_move_to(hall_i, room_entry(room_i), hallway) {
                     // println!("take out {} from hall {}", c, hall_i);
                     let mut new_hallway = hallway.clone();
@@ -97,13 +102,13 @@ fn shortest_cost(initial_rooms: [[char; 2]; 4]) -> usize {
             }
         }
         // move any pod in room to hallway
-        for (room_i, r) in rooms.into_iter().enumerate() {
+        for (room_i, r) in rooms.iter().enumerate() {
             if r.iter().all(|&c| c == '.' || room_of(c) == room_i) {
                 continue; // nothing to change in this room
             }
             // println!("free top of room {} = {:?}", room_i, r);
             // top element of the room
-            let (i, c) = r.into_iter().enumerate().filter(|(_, c)| *c != '.').next().unwrap();
+            let (i, &c) = r.into_iter().enumerate().filter(|&(_, &c)| c != '.').next().unwrap();
             // hallway pos where it can go
             for k in [0,1,3,5,7,9,10] { // not in front of room
                 if let Some(s_move) = steps_move_to(room_entry(room_i), k, hallway) {
@@ -130,10 +135,14 @@ fn shortest_cost(initial_rooms: [[char; 2]; 4]) -> usize {
 
 fn main() {
     println!("p1 = {:?}", {
-        shortest_cost([['b','c'],['b','a'],['d','a'],['d','c']])
+        shortest_cost([vec!['b','c'],vec!['b','a'],vec!['d','a'],vec!['d','c']])
     });
     println!("p2 = {:?}", {
-
+        shortest_cost([
+            vec!['b','d','d','c'],
+            vec!['b','c','b','a'],
+            vec!['d','b','a','a'],
+            vec!['d','a','c','c']])
     });
 }
 
@@ -142,8 +151,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() {
-        let c = shortest_cost([['b','a'],['c','d'],['b','c'],['d','a']]);
+    fn test_part1() {
+        let c = shortest_cost([vec!['b','a'],vec!['c','d'],vec!['b','c'],vec!['d','a']]);
         assert_eq!(12521, c);
     }
+
+    #[test]
+    fn test_part2() {
+        let c = shortest_cost([
+            vec!['b','d','d','a'],
+            vec!['c','c','b','d'],
+            vec!['b','b','a','c'],
+            vec!['d','a','c','a']]);
+        assert_eq!(44169, c);
+    }
+
 }
